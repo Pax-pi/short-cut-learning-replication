@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Environments
+.venv/
+venv/
+
+# Data
+data/
+Data/
+
+# Model checkpoints
+checkpoints/
+*.pt
+*.pth
+
+# Experiment artifacts
+logs/
+
+test.py
