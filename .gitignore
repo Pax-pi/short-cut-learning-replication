@@ -23,5 +23,3 @@ checkpoints/
 
 # Experiment artifacts
 logs/
-
-test.py
