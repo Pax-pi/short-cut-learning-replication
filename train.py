@@ -8,7 +8,7 @@ def train_one_epoch(model: nn.Module, dataloader: DataLoader, optimizer: optim.O
     model.train()
     train_loss = 0.0
     total_samples = 0
-    for images, labels in dataloader:
+    for images, labels, _ in dataloader:
         images = images.to(device)
         labels = labels.to(device)
         optimizer.zero_grad()
@@ -28,7 +28,7 @@ def evaluate(model: nn.Module, dataloader: DataLoader, criterion: nn.Module, dev
     total_correct = 0
     total_samples = 0
     with torch.no_grad():
-        for images, labels in dataloader:
+        for images, labels, _ in dataloader:
             images = images.to(device)
             labels = labels.to(device)
             outputs = model(images)
