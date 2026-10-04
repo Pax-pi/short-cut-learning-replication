@@ -9,7 +9,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from dataset import SCLRDataset
-from train import train_one_epoch, evaluate
+from train import train_one_epoch, evaluate, evaluate_cross_group
 
 DATA_ROOT = Path('data/waterbird_complete95_forest2water2')
 METADATA_PATH = DATA_ROOT / 'metadata.csv'
@@ -20,7 +20,7 @@ WEIGHT_DECAY = 1e-4
 NUM_CLASSES = 2
 
 
-def main():
+def main() -> dict:
     metadata = pd.read_csv(METADATA_PATH)
     model = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
     in_features = model.fc.in_features
@@ -71,7 +71,30 @@ def main():
             
     model.load_state_dict(torch.load('best_model.pth'))
     print(f'Training complete. Loaded checkpoint with the lowest validation loss. Accuracy: {val_acc_at_best_loss:.2f}%.')
-        
-        
+    
+    test_dataset = SCLRDataset(metadata, DATA_ROOT, 'test')
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+    test_metrics = evaluate_cross_group(
+        model=model,
+        dataloader=test_loader,
+        criterion=criterion,
+        device=device
+    )
+
+    print(
+        '\nFinal Evaluation\n'
+        '----------------\n'
+        f'Average Loss:      {test_metrics["Avg_Loss"]:.4f}\n'
+        f'AVG Accuracy:      {test_metrics["Accuracy"] * 100:.2f}%\n'
+        f'G0 Accuracy:       {test_metrics["G0_Accuracy"] * 100:.2f}%\n'
+        f'G1 Accuracy:       {test_metrics["G1_Accuracy"] * 100:.2f}%\n'
+        f'G2 Accuracy:       {test_metrics["G2_Accuracy"] * 100:.2f}%\n'
+        f'G3 Accuracy:       {test_metrics["G3_Accuracy"] * 100:.2f}%\n'
+        f'WGA:               {test_metrics["WGA"] * 100:.2f}%\n'
+        f'GAP:               {test_metrics["GAP"] * 100:.2f}%'
+    )
+    return test_metrics
+
+
 if __name__ == '__main__':
     main()
