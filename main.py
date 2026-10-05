@@ -27,7 +27,13 @@ def main() -> dict:
     model.fc = nn.Linear(in_features, NUM_CLASSES)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
-    device = torch.device('mps')
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    elif torch.backends.mps.is_available():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cpu')
+    print(f'Using device: {device}')
     model.to(device)
     train_dataset = SCLRDataset(metadata, DATA_ROOT, 'train')
     val_dataset = SCLRDataset(metadata, DATA_ROOT, 'val')
