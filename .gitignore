@@ -25,3 +25,4 @@ checkpoints/
 logs/
 test.py
 test.ipynb
+results.json
