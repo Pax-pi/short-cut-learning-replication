@@ -29,20 +29,23 @@ def main() -> dict:
     optimizer = optim.SGD(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
     if torch.cuda.is_available():
         device = torch.device('cuda')
+        num_workers = 4
     elif torch.backends.mps.is_available():
         device = torch.device('mps')
+        num_workers = 0
     else:
         device = torch.device('cpu')
-    print(f'Using device: {device}')
+        num_workers = 0
+    print(f'Using device: {device} | DataLoader workers: {num_workers}')
     model.to(device)
     train_dataset = SCLRDataset(metadata, DATA_ROOT, 'train')
     val_dataset = SCLRDataset(metadata, DATA_ROOT, 'val')
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE)
-    
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, num_workers=num_workers)
+
     best_val_loss = float('inf')
     val_acc_at_best_loss = 0.0
-    
+
     for epoch in range(NUM_EPOCHS):
         start_time = time.time()
 
@@ -60,9 +63,9 @@ def main() -> dict:
             device=device
         )
         val_accuracy = val_acc * 100
-        
+
         epoch_time = time.time() - start_time
-        
+
         print(
             f'Epoch [{epoch + 1}/{NUM_EPOCHS}] | '
             f'Time taken: {epoch_time:.1f}s | '
@@ -74,12 +77,12 @@ def main() -> dict:
             val_acc_at_best_loss = val_accuracy
             torch.save(model.state_dict(), 'best_model.pth')
             print(f'New record! Saving weights. Val Loss: {val_loss:.4f}')
-            
+
     model.load_state_dict(torch.load('best_model.pth'))
     print(f'Training complete. Loaded checkpoint with the lowest validation loss. Accuracy: {val_acc_at_best_loss:.2f}%.')
     
     test_dataset = SCLRDataset(metadata, DATA_ROOT, 'test')
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, num_workers=num_workers)
     test_metrics = evaluate_cross_group(
         model=model,
         dataloader=test_loader,
