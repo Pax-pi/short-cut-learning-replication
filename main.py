@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 from dataset import SCLRDataset
 from train import train_one_epoch, evaluate, evaluate_cross_group
+from utils import seed_worker
 
 DATA_ROOT = Path('data/waterbird_complete95_forest2water2')
 METADATA_PATH = DATA_ROOT / 'metadata.csv'
@@ -40,8 +41,8 @@ def main() -> dict:
     model.to(device)
     train_dataset = SCLRDataset(metadata, DATA_ROOT, 'train')
     val_dataset = SCLRDataset(metadata, DATA_ROOT, 'val')
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, num_workers=num_workers)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers, worker_init_fn=seed_worker)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, num_workers=num_workers, worker_init_fn=seed_worker)
 
     best_val_loss = float('inf')
     val_acc_at_best_loss = 0.0
